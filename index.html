@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>To Do App</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="light">
+<div id="app">
+  <div class="wrap">
+    <div class="header">
+      <div class="title">My <span>Tasks</span></div>
+      <button class="theme-btn" id="themeBtn">🌙</button>
+    </div>
+
+    <div class="progress-card">
+      <div class="ring-wrap">
+        <svg width="76" height="76" viewBox="0 0 76 76">
+          <circle class="ring-bg" cx="38" cy="38" r="30" fill="none" stroke-width="6"/>
+          <circle class="ring-fill" id="ringFill" cx="38" cy="38" r="30" fill="none" stroke-width="6"
+            stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="188.5"/>
+        </svg>
+        <div class="ring-text" id="ringPct">0%</div>
+      </div>
+      <div class="progress-info">
+        <div class="progress-label">Overall progress</div>
+        <div class="progress-stats" id="progressStats">0 of 0 tasks completed</div>
+        <div class="bar-track">
+          <div class="bar-fill" id="progressBar" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-row">
+      <input class="task-input" id="taskInput" placeholder="Add a new task..." maxlength="120" />
+      <button class="add-btn" id="addBtn">+ Add task</button>
+    </div>
+
+    <div class="filters" id="filters">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="active">Active</button>
+      <button class="filter-btn" data-filter="completed">Completed</button>
+    </div>
+
+    <div class="task-list" id="taskList"></div>
+
+    <div class="footer" id="footer" style="display:none">
+      <span class="footer-count" id="footerCount"></span>
+      <button class="clear-btn" id="clearBtn">Clear completed</button>
+    </div>
+  </div>
+</div>
+<script src="script.js"></script>
+</body>
+</html>
