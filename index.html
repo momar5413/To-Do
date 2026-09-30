@@ -1,22 +1,39 @@
 <!DOCTYPE html>
-<html lang="ar" dir="ltr">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="description" content="Simple, fast to-do list with priorities, due dates and progress tracking." />
   <title>To Do App</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✅</text></svg>" />
   <link rel="stylesheet" href="style.css">
+  <script>
+    // Apply saved theme/language before first paint to avoid a flash.
+    try {
+      var p = JSON.parse(localStorage.getItem('todo_prefs')) || {};
+      var legacy = localStorage.getItem('dark');
+      var theme = p.theme || (legacy === '1' ? 'dark' : legacy === '0' ? 'light' : null);
+      if (!theme && matchMedia('(prefers-color-scheme: dark)').matches) theme = 'dark';
+      document.documentElement.dataset.theme = theme || 'light';
+      if (p.lang === 'en') { document.documentElement.lang = 'en'; document.documentElement.dir = 'ltr'; }
+    } catch (e) {}
+  </script>
 </head>
-<body class="light">
+<body>
 <div id="app">
-  <div class="wrap">
-    <div class="header">
-      <div class="title">My <span>Tasks</span></div>
-      <button class="theme-btn" id="themeBtn">🌙</button>
-    </div>
+  <main class="wrap">
+    <header class="header">
+      <h1 class="title" data-i18n-html="title"></h1>
+      <div class="header-actions">
+        <button type="button" class="icon-btn" id="langBtn"></button>
+        <button type="button" class="icon-btn" id="themeBtn"></button>
+      </div>
+    </header>
 
-    <div class="progress-card">
+    <section class="progress-card" aria-live="polite">
       <div class="ring-wrap">
-        <svg width="76" height="76" viewBox="0 0 76 76">
+        <svg width="76" height="76" viewBox="0 0 76 76" aria-hidden="true">
           <circle class="ring-bg" cx="38" cy="38" r="30" fill="none" stroke-width="6"/>
           <circle class="ring-fill" id="ringFill" cx="38" cy="38" r="30" fill="none" stroke-width="6"
             stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="188.5"/>
@@ -24,33 +41,83 @@
         <div class="ring-text" id="ringPct">0%</div>
       </div>
       <div class="progress-info">
-        <div class="progress-label">Overall progress</div>
-        <div class="progress-stats" id="progressStats">0 of 0 tasks completed</div>
+        <div class="progress-label" data-i18n="progress"></div>
+        <div class="progress-stats" id="progressStats"></div>
         <div class="bar-track">
-          <div class="bar-fill" id="progressBar" style="width:0%"></div>
+          <div class="bar-fill" id="progressBar"></div>
         </div>
+      </div>
+    </section>
+
+    <form class="add-form" id="addForm" autocomplete="off">
+      <input class="task-input" id="taskInput" maxlength="120" required data-i18n-attr="placeholder:addPlaceholder,aria-label:addPlaceholder" />
+      <div class="add-options">
+        <select class="field" id="prioritySelect" data-i18n-attr="aria-label:priority">
+          <option value="low" data-i18n="low"></option>
+          <option value="med" data-i18n="med"></option>
+          <option value="high" data-i18n="high"></option>
+        </select>
+        <input class="field" type="date" id="dueInput" data-i18n-attr="aria-label:dueDate,title:dueDate" />
+        <button type="submit" class="add-btn" data-i18n="add"></button>
+      </div>
+    </form>
+
+    <div class="toolbar">
+      <div class="filters" id="filters" role="tablist">
+        <button type="button" class="filter-btn active" data-filter="all" role="tab" aria-selected="true"><span data-i18n="all"></span> <span class="count" id="countAll">0</span></button>
+        <button type="button" class="filter-btn" data-filter="active" role="tab" aria-selected="false"><span data-i18n="active"></span> <span class="count" id="countActive">0</span></button>
+        <button type="button" class="filter-btn" data-filter="completed" role="tab" aria-selected="false"><span data-i18n="completed"></span> <span class="count" id="countDone">0</span></button>
+      </div>
+      <div class="tools">
+        <input class="field search" type="search" id="searchInput" data-i18n-attr="placeholder:search,aria-label:search" />
+        <select class="field" id="sortSelect" data-i18n-attr="aria-label:sort">
+          <option value="newest" data-i18n="sortNewest"></option>
+          <option value="oldest" data-i18n="sortOldest"></option>
+          <option value="priority" data-i18n="sortPriority"></option>
+          <option value="due" data-i18n="sortDue"></option>
+        </select>
       </div>
     </div>
 
-    <div class="input-row">
-      <input class="task-input" id="taskInput" placeholder="Add a new task..." maxlength="120" />
-      <button class="add-btn" id="addBtn">+ Add task</button>
-    </div>
+    <ul class="task-list" id="taskList"></ul>
 
-    <div class="filters" id="filters">
-      <button class="filter-btn active" data-filter="all">All</button>
-      <button class="filter-btn" data-filter="active">Active</button>
-      <button class="filter-btn" data-filter="completed">Completed</button>
-    </div>
-
-    <div class="task-list" id="taskList"></div>
-
-    <div class="footer" id="footer" style="display:none">
+    <footer class="footer" id="footer" hidden>
       <span class="footer-count" id="footerCount"></span>
-      <button class="clear-btn" id="clearBtn">Clear completed</button>
-    </div>
-  </div>
+      <div class="footer-actions">
+        <button type="button" class="link-btn" id="toggleAllBtn" data-i18n="toggleAll"></button>
+        <button type="button" class="link-btn danger" id="clearBtn" data-i18n="clearCompleted"></button>
+      </div>
+    </footer>
+
+    <p class="hint" data-i18n="hint"></p>
+  </main>
 </div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden>
+  <span id="toastMsg"></span>
+  <button type="button" class="toast-btn" id="undoBtn" data-i18n="undo"></button>
+</div>
+
+<template id="taskTemplate">
+  <li class="task-item">
+    <button type="button" class="check-btn">
+      <svg class="check-icon" viewBox="0 0 10 8" aria-hidden="true"><path d="M1 4l2.5 2.5L9 1" stroke="#fff" stroke-width="2" fill="none"/></svg>
+    </button>
+    <div class="task-body">
+      <span class="task-text"></span>
+      <div class="task-meta">
+        <span class="priority-badge"></span>
+        <span class="due-badge"></span>
+      </div>
+    </div>
+    <div class="task-actions">
+      <div class="priority-dots"></div>
+      <button type="button" class="act-btn edit" data-action="edit">✏</button>
+      <button type="button" class="act-btn del" data-action="delete">✕</button>
+    </div>
+  </li>
+</template>
+
 <script src="script.js"></script>
 </body>
 </html>
