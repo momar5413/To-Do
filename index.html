@@ -2,119 +2,308 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="color-scheme" content="light dark" />
-  <meta name="description" content="Simple, fast to-do list with priorities, due dates and progress tracking." />
-  <title>To Do App</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✅</text></svg>" />
-  <link rel="stylesheet" href="style.css">
+  <meta name="theme-color" content="#6c5ce7" />
+  <meta name="description" content="Task manager with lists, subtasks, due dates, stats and offline support." />
+  <title>مهامي</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
   <script>
-    // Apply saved theme/language before first paint to avoid a flash.
+    // Apply saved appearance before first paint to avoid a flash.
     try {
-      var p = JSON.parse(localStorage.getItem('todo_prefs')) || {};
-      var legacy = localStorage.getItem('dark');
-      var theme = p.theme || (legacy === '1' ? 'dark' : legacy === '0' ? 'light' : null);
-      if (!theme && matchMedia('(prefers-color-scheme: dark)').matches) theme = 'dark';
-      document.documentElement.dataset.theme = theme || 'light';
-      if (p.lang === 'en') { document.documentElement.lang = 'en'; document.documentElement.dir = 'ltr'; }
+      var s = JSON.parse(localStorage.getItem('todo_v4_settings')) || {};
+      var d = document.documentElement;
+      var dark = s.theme === 'dark' || (s.theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+      d.dataset.theme = dark ? 'dark' : 'light';
+      if (s.accent) d.dataset.accent = s.accent;
+      if (s.lang === 'en') { d.lang = 'en'; d.dir = 'ltr'; }
     } catch (e) {}
   </script>
 </head>
 <body>
-<div id="app">
-  <main class="wrap">
-    <header class="header">
-      <h1 class="title" data-i18n-html="title"></h1>
-      <div class="header-actions">
-        <button type="button" class="icon-btn" id="langBtn"></button>
-        <button type="button" class="icon-btn" id="themeBtn"></button>
+<div class="app" id="app">
+
+  <!-- ============ Sidebar ============ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="brand-name" data-i18n="appName"></div>
+      <button type="button" class="icon-btn sm only-mobile" id="closeSidebar" data-i18n-attr="aria-label:close">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
+    <nav class="nav" id="smartNav" aria-label="Views">
+      <button type="button" class="nav-item" data-view="today">
+        <span class="nav-ico">☀️</span><span class="nav-label" data-i18n="today"></span><span class="nav-count" data-count="today"></span>
+      </button>
+      <button type="button" class="nav-item" data-view="upcoming">
+        <span class="nav-ico">📅</span><span class="nav-label" data-i18n="upcoming"></span><span class="nav-count" data-count="upcoming"></span>
+      </button>
+      <button type="button" class="nav-item" data-view="important">
+        <span class="nav-ico">⭐</span><span class="nav-label" data-i18n="important"></span><span class="nav-count" data-count="important"></span>
+      </button>
+      <button type="button" class="nav-item" data-view="all">
+        <span class="nav-ico">📋</span><span class="nav-label" data-i18n="allTasks"></span><span class="nav-count" data-count="all"></span>
+      </button>
+      <button type="button" class="nav-item" data-view="completed">
+        <span class="nav-ico">✅</span><span class="nav-label" data-i18n="completed"></span><span class="nav-count" data-count="completed"></span>
+      </button>
+    </nav>
+
+    <div class="nav-section">
+      <span data-i18n="myLists"></span>
+      <button type="button" class="icon-btn xs" id="addListBtn" data-i18n-attr="aria-label:newList,title:newList">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+    </div>
+    <nav class="nav lists" id="listNav" aria-label="Lists"></nav>
+
+    <section class="stats-card" id="statsCard">
+      <div class="stats-top">
+        <div>
+          <div class="stats-streak"><span id="streakNum">0</span> 🔥</div>
+          <div class="stats-sub" data-i18n="streak"></div>
+        </div>
+        <div class="stats-today">
+          <div class="stats-big" id="doneToday">0</div>
+          <div class="stats-sub" data-i18n="doneToday"></div>
+        </div>
+      </div>
+      <div class="week-chart" id="weekChart" aria-hidden="true"></div>
+    </section>
+
+    <button type="button" class="settings-btn" id="settingsBtn">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>
+      <span data-i18n="settings"></span>
+    </button>
+  </aside>
+  <div class="scrim" id="scrim" hidden></div>
+
+  <!-- ============ Main ============ -->
+  <main class="main" id="main">
+    <header class="topbar">
+      <button type="button" class="icon-btn only-mobile" id="menuBtn" data-i18n-attr="aria-label:menu">
+        <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <div class="view-head">
+        <div class="greeting" id="greeting"></div>
+        <h1 class="view-title"><span id="viewIcon"></span> <span id="viewTitle"></span></h1>
+        <div class="view-date" id="viewDate"></div>
+      </div>
+      <div class="ring" id="ring" aria-live="polite">
+        <svg viewBox="0 0 64 64" aria-hidden="true">
+          <circle class="ring-bg" cx="32" cy="32" r="27"/>
+          <circle class="ring-fill" id="ringFill" cx="32" cy="32" r="27"/>
+        </svg>
+        <span class="ring-pct" id="ringPct">0%</span>
       </div>
     </header>
 
-    <section class="progress-card" aria-live="polite">
-      <div class="ring-wrap">
-        <svg width="76" height="76" viewBox="0 0 76 76" aria-hidden="true">
-          <circle class="ring-bg" cx="38" cy="38" r="30" fill="none" stroke-width="6"/>
-          <circle class="ring-fill" id="ringFill" cx="38" cy="38" r="30" fill="none" stroke-width="6"
-            stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="188.5"/>
-        </svg>
-        <div class="ring-text" id="ringPct">0%</div>
+    <form class="composer" id="composer" autocomplete="off">
+      <div class="composer-main">
+        <span class="composer-plus" aria-hidden="true">+</span>
+        <input id="taskInput" class="composer-input" maxlength="200" data-i18n-attr="placeholder:addPlaceholder,aria-label:addPlaceholder" />
+        <button type="submit" class="btn primary" data-i18n="add"></button>
       </div>
-      <div class="progress-info">
-        <div class="progress-label" data-i18n="progress"></div>
-        <div class="progress-stats" id="progressStats"></div>
-        <div class="bar-track">
-          <div class="bar-fill" id="progressBar"></div>
+      <div class="composer-opts">
+        <div class="seg" id="prioritySeg" role="radiogroup" data-i18n-attr="aria-label:priority">
+          <button type="button" data-p="none" class="active" data-i18n-attr="title:pNone,aria-label:pNone">—</button>
+          <button type="button" data-p="low" data-i18n-attr="title:pLow,aria-label:pLow"><i class="pdot low"></i></button>
+          <button type="button" data-p="med" data-i18n-attr="title:pMed,aria-label:pMed"><i class="pdot med"></i></button>
+          <button type="button" data-p="high" data-i18n-attr="title:pHigh,aria-label:pHigh"><i class="pdot high"></i></button>
         </div>
-      </div>
-    </section>
-
-    <form class="add-form" id="addForm" autocomplete="off">
-      <input class="task-input" id="taskInput" maxlength="120" required data-i18n-attr="placeholder:addPlaceholder,aria-label:addPlaceholder" />
-      <div class="add-options">
-        <select class="field" id="prioritySelect" data-i18n-attr="aria-label:priority">
-          <option value="low" data-i18n="low"></option>
-          <option value="med" data-i18n="med"></option>
-          <option value="high" data-i18n="high"></option>
-        </select>
-        <input class="field" type="date" id="dueInput" data-i18n-attr="aria-label:dueDate,title:dueDate" />
-        <button type="submit" class="add-btn" data-i18n="add"></button>
+        <div class="chip-group">
+          <button type="button" class="chip" data-quick="today" data-i18n="today"></button>
+          <button type="button" class="chip" data-quick="tomorrow" data-i18n="tomorrow"></button>
+          <label class="chip date-chip">
+            <span>📅</span><input type="date" id="dueInput" data-i18n-attr="aria-label:dueDate" />
+          </label>
+        </div>
+        <select id="listSelect" class="select sm" data-i18n-attr="aria-label:list"></select>
+        <span class="composer-tip" data-i18n="smartTip"></span>
       </div>
     </form>
 
     <div class="toolbar">
-      <div class="filters" id="filters" role="tablist">
-        <button type="button" class="filter-btn active" data-filter="all" role="tab" aria-selected="true"><span data-i18n="all"></span> <span class="count" id="countAll">0</span></button>
-        <button type="button" class="filter-btn" data-filter="active" role="tab" aria-selected="false"><span data-i18n="active"></span> <span class="count" id="countActive">0</span></button>
-        <button type="button" class="filter-btn" data-filter="completed" role="tab" aria-selected="false"><span data-i18n="completed"></span> <span class="count" id="countDone">0</span></button>
+      <div class="search-box">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input type="search" id="searchInput" data-i18n-attr="placeholder:search,aria-label:search" />
+        <kbd>/</kbd>
       </div>
-      <div class="tools">
-        <input class="field search" type="search" id="searchInput" data-i18n-attr="placeholder:search,aria-label:search" />
-        <select class="field" id="sortSelect" data-i18n-attr="aria-label:sort">
-          <option value="newest" data-i18n="sortNewest"></option>
-          <option value="oldest" data-i18n="sortOldest"></option>
-          <option value="priority" data-i18n="sortPriority"></option>
-          <option value="due" data-i18n="sortDue"></option>
-        </select>
-      </div>
+      <select id="sortSelect" class="select" data-i18n-attr="aria-label:sort">
+        <option value="manual" data-i18n="sortManual"></option>
+        <option value="due" data-i18n="sortDue"></option>
+        <option value="priority" data-i18n="sortPriority"></option>
+        <option value="newest" data-i18n="sortNewest"></option>
+        <option value="alpha" data-i18n="sortAlpha"></option>
+      </select>
+      <button type="button" class="icon-btn" id="listMenuBtn" hidden data-i18n-attr="aria-label:deleteList,title:deleteList">
+        <svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>
+      </button>
     </div>
 
     <ul class="task-list" id="taskList"></ul>
 
-    <footer class="footer" id="footer" hidden>
-      <span class="footer-count" id="footerCount"></span>
-      <div class="footer-actions">
-        <button type="button" class="link-btn" id="toggleAllBtn" data-i18n="toggleAll"></button>
-        <button type="button" class="link-btn danger" id="clearBtn" data-i18n="clearCompleted"></button>
-      </div>
-    </footer>
+    <div class="done-section" id="doneSection" hidden>
+      <button type="button" class="done-toggle" id="doneToggle" aria-expanded="true">
+        <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        <span id="doneLabel"></span>
+      </button>
+      <button type="button" class="link-btn danger" id="clearDoneBtn" data-i18n="clearCompleted"></button>
+    </div>
+    <ul class="task-list done-list" id="doneList"></ul>
 
-    <p class="hint" data-i18n="hint"></p>
+    <div class="empty" id="empty" hidden>
+      <div class="empty-art" id="emptyArt">🌿</div>
+      <div class="empty-title" id="emptyTitle"></div>
+      <div class="empty-sub" id="emptySub"></div>
+    </div>
   </main>
+
+  <!-- ============ Details panel ============ -->
+  <aside class="details" id="details" aria-hidden="true">
+    <div class="details-head">
+      <button type="button" class="check lg" id="dCheck"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
+      <textarea id="dTitle" class="d-title" rows="1" maxlength="200" data-i18n-attr="aria-label:taskTitle"></textarea>
+      <button type="button" class="star-btn" id="dStar"><svg viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg></button>
+      <button type="button" class="icon-btn sm" id="dClose" data-i18n-attr="aria-label:close">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
+    <div class="d-section">
+      <div class="d-label" data-i18n="subtasks"></div>
+      <ul class="subtasks" id="dSubtasks"></ul>
+      <form id="dSubForm" class="sub-add" autocomplete="off">
+        <span aria-hidden="true">+</span>
+        <input id="dSubInput" maxlength="150" data-i18n-attr="placeholder:addSubtask,aria-label:addSubtask" />
+      </form>
+    </div>
+
+    <div class="d-grid">
+      <label class="d-field">
+        <span class="d-label" data-i18n="dueDate"></span>
+        <input type="date" id="dDue" class="select" />
+      </label>
+      <label class="d-field">
+        <span class="d-label" data-i18n="list"></span>
+        <select id="dList" class="select"></select>
+      </label>
+      <div class="d-field full">
+        <span class="d-label" data-i18n="priority"></span>
+        <div class="seg wide" id="dPriority">
+          <button type="button" data-p="none" data-i18n="pNone"></button>
+          <button type="button" data-p="low"><i class="pdot low"></i> <span data-i18n="pLow"></span></button>
+          <button type="button" data-p="med"><i class="pdot med"></i> <span data-i18n="pMed"></span></button>
+          <button type="button" data-p="high"><i class="pdot high"></i> <span data-i18n="pHigh"></span></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-section">
+      <div class="d-label" data-i18n="notes"></div>
+      <textarea id="dNotes" class="d-notes" rows="5" maxlength="2000" data-i18n-attr="placeholder:notesPlaceholder,aria-label:notes"></textarea>
+    </div>
+
+    <div class="details-foot">
+      <span class="d-created" id="dCreated"></span>
+      <button type="button" class="btn danger-ghost" id="dDelete">
+        <svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>
+        <span data-i18n="delete"></span>
+      </button>
+    </div>
+  </aside>
 </div>
+
+<!-- ============ Dialogs ============ -->
+<dialog class="modal" id="listDialog">
+  <form method="dialog" id="listForm" autocomplete="off">
+    <h2 data-i18n="newList"></h2>
+    <div class="list-name-row">
+      <input id="listEmoji" class="emoji-input" maxlength="2" value="📁" data-i18n-attr="aria-label:emoji" />
+      <input id="listName" class="select grow" maxlength="30" required data-i18n-attr="placeholder:listName,aria-label:listName" />
+    </div>
+    <div class="swatches" id="listColors"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn ghost" value="cancel" id="listCancel" data-i18n="cancel"></button>
+      <button type="submit" class="btn primary" value="ok" data-i18n="create"></button>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="modal" id="settingsDialog">
+  <div class="modal-body">
+    <h2 data-i18n="settings"></h2>
+    <div class="set-row">
+      <span data-i18n="language"></span>
+      <div class="seg" id="langSeg">
+        <button type="button" data-v="ar">العربية</button>
+        <button type="button" data-v="en">English</button>
+      </div>
+    </div>
+    <div class="set-row">
+      <span data-i18n="theme"></span>
+      <div class="seg" id="themeSeg">
+        <button type="button" data-v="light" data-i18n="light"></button>
+        <button type="button" data-v="dark" data-i18n="dark"></button>
+        <button type="button" data-v="system" data-i18n="system"></button>
+      </div>
+    </div>
+    <div class="set-row">
+      <span data-i18n="accent"></span>
+      <div class="swatches" id="accentSwatches"></div>
+    </div>
+    <div class="set-row">
+      <span data-i18n="celebrate"></span>
+      <label class="switch"><input type="checkbox" id="confettiToggle" /><span></span></label>
+    </div>
+    <div class="set-row col">
+      <span data-i18n="data"></span>
+      <div class="set-actions">
+        <button type="button" class="btn ghost" id="exportBtn">⬇️ <span data-i18n="export"></span></button>
+        <label class="btn ghost">⬆️ <span data-i18n="import"></span><input type="file" id="importInput" accept="application/json,.json" hidden /></label>
+        <button type="button" class="btn danger-ghost" id="resetBtn" data-i18n="resetAll"></button>
+      </div>
+    </div>
+    <div class="shortcuts">
+      <div class="d-label" data-i18n="shortcuts"></div>
+      <div class="sc"><kbd>N</kbd> <span data-i18n="scNew"></span></div>
+      <div class="sc"><kbd>/</kbd> <span data-i18n="scSearch"></span></div>
+      <div class="sc"><kbd>Esc</kbd> <span data-i18n="scClose"></span></div>
+      <div class="sc"><kbd>1</kbd>–<kbd>5</kbd> <span data-i18n="scViews"></span></div>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn primary" id="settingsClose" data-i18n="done"></button>
+    </div>
+  </div>
+</dialog>
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden>
   <span id="toastMsg"></span>
   <button type="button" class="toast-btn" id="undoBtn" data-i18n="undo"></button>
 </div>
 
-<template id="taskTemplate">
-  <li class="task-item">
-    <button type="button" class="check-btn">
-      <svg class="check-icon" viewBox="0 0 10 8" aria-hidden="true"><path d="M1 4l2.5 2.5L9 1" stroke="#fff" stroke-width="2" fill="none"/></svg>
-    </button>
-    <div class="task-body">
-      <span class="task-text"></span>
-      <div class="task-meta">
-        <span class="priority-badge"></span>
-        <span class="due-badge"></span>
-      </div>
+<canvas id="confetti" aria-hidden="true"></canvas>
+
+<template id="taskTpl">
+  <li class="task">
+    <span class="handle" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="6" r="1.4"/><circle cx="15" cy="6" r="1.4"/><circle cx="9" cy="12" r="1.4"/><circle cx="15" cy="12" r="1.4"/><circle cx="9" cy="18" r="1.4"/><circle cx="15" cy="18" r="1.4"/></svg></span>
+    <button type="button" class="check" data-action="toggle"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
+    <div class="task-body" data-action="open">
+      <div class="task-title"></div>
+      <div class="task-meta"></div>
     </div>
-    <div class="task-actions">
-      <div class="priority-dots"></div>
-      <button type="button" class="act-btn edit" data-action="edit">✏</button>
-      <button type="button" class="act-btn del" data-action="delete">✕</button>
-    </div>
+    <button type="button" class="star-btn" data-action="star"><svg viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg></button>
+    <button type="button" class="del-btn" data-action="delete"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   </li>
 </template>
 
