@@ -1,0 +1,23 @@
+{
+  "name": "mahami",
+  "version": "2.1.0",
+  "private": true,
+  "description": "مهامي — task manager with lists, reminders and an Android app",
+  "scripts": {
+    "build:web": "node scripts/build-web.mjs",
+    "sync": "npm run build:web && cap sync android",
+    "apk": "npm run sync && cd android && ./gradlew assembleRelease && node ../scripts/copy-apk.mjs"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/local-notifications": "^8.3.1",
+    "@capacitor/splash-screen": "^8.0.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.2",
+    "esbuild": "^0.25.0"
+  }
+}

@@ -4,22 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="color-scheme" content="light dark" />
-  <meta name="theme-color" content="#6c5ce7" />
-  <meta name="description" content="Task manager with lists, subtasks, due dates, stats and offline support." />
+  <meta name="theme-color" content="#0b1f1a" />
+  <meta name="description" content="مهامي — مدير مهام أنيق مع قوائم وتذكيرات وإشعارات ومهام فرعية وإحصائيات، يعمل بدون إنترنت." />
   <title>مهامي</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
-  <link rel="apple-touch-icon" href="icon.svg" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="fonts/fonts.css" />
   <link rel="stylesheet" href="style.css" />
   <script>
     // Apply saved appearance before first paint to avoid a flash.
     try {
       var s = JSON.parse(localStorage.getItem('todo_v4_settings')) || {};
       var d = document.documentElement;
-      var dark = s.theme === 'dark' || (s.theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+      var dark = !s.theme || s.theme === 'dark' || (s.theme === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
       d.dataset.theme = dark ? 'dark' : 'light';
       if (s.accent) d.dataset.accent = s.accent;
       if (s.lang === 'en') { d.lang = 'en'; d.dir = 'ltr'; }
@@ -33,7 +31,7 @@
   <aside class="sidebar" id="sidebar">
     <div class="brand">
       <div class="brand-logo" aria-hidden="true">
-        <svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg viewBox="0 0 24 24"><path class="logo-star" d="M12.0,1.0 L15.2,4.2 L19.8,4.2 L19.8,8.8 L23.0,12.0 L19.8,15.2 L19.8,19.8 L15.2,19.8 L12.0,23.0 L8.8,19.8 L4.2,19.8 L4.2,15.2 L1.0,12.0 L4.2,8.8 L4.2,4.2 L8.8,4.2Z"/><path class="logo-check" d="M8 12.3l2.8 2.8L16.2 9.5"/></svg>
       </div>
       <div class="brand-name" data-i18n="appName"></div>
       <button type="button" class="icon-btn sm only-mobile" id="closeSidebar" data-i18n-attr="aria-label:close">
@@ -81,6 +79,10 @@
       <div class="week-chart" id="weekChart" aria-hidden="true"></div>
     </section>
 
+    <a class="settings-btn app-link" id="sideApkLink" href="downloads/mahami.apk" download hidden>
+      <svg viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></svg>
+      <span data-i18n="getAndroid"></span>
+    </a>
     <button type="button" class="settings-btn" id="settingsBtn">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>
       <span data-i18n="settings"></span>
@@ -99,10 +101,15 @@
         <h1 class="view-title"><span id="viewIcon"></span> <span id="viewTitle"></span></h1>
         <div class="view-date" id="viewDate"></div>
       </div>
+      <button type="button" class="icon-btn bell-btn" id="bellBtn">
+        <svg viewBox="0 0 24 24"><path d="M6 16.5V11a6 6 0 1112 0v5.5l1.5 2H4.5z"/><path d="M10 21a2.2 2.2 0 004 0"/></svg>
+        <i class="bell-dot" aria-hidden="true"></i>
+      </button>
       <div class="ring" id="ring" aria-live="polite">
         <svg viewBox="0 0 64 64" aria-hidden="true">
-          <circle class="ring-bg" cx="32" cy="32" r="27"/>
-          <circle class="ring-fill" id="ringFill" cx="32" cy="32" r="27"/>
+          <path class="ring-bg" d="M32.00,5.00 L39.91,12.91 L51.09,12.91 L51.09,24.09 L59.00,32.00 L51.09,39.91 L51.09,51.09 L39.91,51.09 L32.00,59.00 L24.09,51.09 L12.91,51.09 L12.91,39.91 L5.00,32.00 L12.91,24.09 L12.91,12.91 L24.09,12.91Z"/>
+          <path class="ring-fill" id="ringFill" d="M32.00,5.00 L39.91,12.91 L51.09,12.91 L51.09,24.09 L59.00,32.00 L51.09,39.91 L51.09,51.09 L39.91,51.09 L32.00,59.00 L24.09,51.09 L12.91,51.09 L12.91,39.91 L5.00,32.00 L12.91,24.09 L12.91,12.91 L24.09,12.91Z"/>
+          <path class="ring-inner" d="M32.00,5.00 L39.91,12.91 L51.09,12.91 L51.09,24.09 L59.00,32.00 L51.09,39.91 L51.09,51.09 L39.91,51.09 L32.00,59.00 L24.09,51.09 L12.91,51.09 L12.91,39.91 L5.00,32.00 L12.91,24.09 L12.91,12.91 L24.09,12.91Z" transform="translate(32 32) scale(.62) translate(-32 -32)"/>
         </svg>
         <span class="ring-pct" id="ringPct">0%</span>
       </div>
@@ -126,6 +133,9 @@
           <button type="button" class="chip" data-quick="tomorrow" data-i18n="tomorrow"></button>
           <label class="chip date-chip">
             <span>📅</span><input type="date" id="dueInput" data-i18n-attr="aria-label:dueDate" />
+          </label>
+          <label class="chip time-chip">
+            <span>⏰</span><input type="time" id="timeInput" data-i18n-attr="aria-label:time" />
           </label>
         </div>
         <select id="listSelect" class="select sm" data-i18n-attr="aria-label:list"></select>
@@ -195,9 +205,20 @@
         <input type="date" id="dDue" class="select" />
       </label>
       <label class="d-field">
+        <span class="d-label" data-i18n="time"></span>
+        <input type="time" id="dTime" class="select" />
+      </label>
+      <label class="d-field">
+        <span class="d-label" data-i18n="reminder"></span>
+        <select id="dRemind" class="select"></select>
+      </label>
+      <label class="d-field">
         <span class="d-label" data-i18n="list"></span>
         <select id="dList" class="select"></select>
       </label>
+      <button type="button" class="notify-hint d-field full" id="dNotifyHint" hidden>
+        <span>🔔</span><span id="dNotifyHintText"></span>
+      </button>
       <div class="d-field full">
         <span class="d-label" data-i18n="priority"></span>
         <div class="seg wide" id="dPriority">
@@ -262,6 +283,31 @@
       <span data-i18n="accent"></span>
       <div class="swatches" id="accentSwatches"></div>
     </div>
+    <section class="set-group" id="notifySection">
+      <div class="set-row">
+        <div class="set-label"><span data-i18n="notifications"></span><small id="notifyStatus"></small></div>
+        <label class="switch"><input type="checkbox" id="notifyToggle" /><span></span></label>
+      </div>
+      <div class="set-row sub" data-needs-notify>
+        <div class="set-label"><span data-i18n="allDayTime"></span><small data-i18n="allDayTimeHint"></small></div>
+        <input type="time" id="allDayTime" class="select sm time-field" data-i18n-attr="aria-label:allDayTime" />
+      </div>
+      <div class="set-row sub" data-needs-notify>
+        <div class="set-label"><span data-i18n="dailySummary"></span><small data-i18n="dailySummaryHint"></small></div>
+        <div class="set-inline">
+          <input type="time" id="dailyTime" class="select sm time-field" data-i18n-attr="aria-label:dailySummary" />
+          <label class="switch"><input type="checkbox" id="dailyToggle" /><span></span></label>
+        </div>
+      </div>
+      <div class="set-row sub" data-needs-notify>
+        <div class="set-label"><small data-i18n="testNotifyHint"></small></div>
+        <button type="button" class="btn ghost sm" id="testNotifyBtn" data-i18n="testNotify"></button>
+      </div>
+    </section>
+    <div class="set-row app-row" id="appRow" hidden>
+      <div class="set-label"><span data-i18n="androidApp"></span><small data-i18n="androidAppHint"></small></div>
+      <a class="btn primary sm" id="apkBtn" href="downloads/mahami.apk" download data-i18n="download"></a>
+    </div>
     <div class="set-row">
       <span data-i18n="celebrate"></span>
       <label class="switch"><input type="checkbox" id="confettiToggle" /><span></span></label>
@@ -281,7 +327,8 @@
       <div class="sc"><kbd>Esc</kbd> <span data-i18n="scClose"></span></div>
       <div class="sc"><kbd>1</kbd>–<kbd>5</kbd> <span data-i18n="scViews"></span></div>
     </div>
-    <div class="modal-actions">
+    <div class="modal-actions spread">
+      <span class="version" id="appVersion"></span>
       <button type="button" class="btn primary" id="settingsClose" data-i18n="done"></button>
     </div>
   </div>
@@ -289,7 +336,7 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden>
   <span id="toastMsg"></span>
-  <button type="button" class="toast-btn" id="undoBtn" data-i18n="undo"></button>
+  <button type="button" class="toast-btn" id="toastBtn"></button>
 </div>
 
 <canvas id="confetti" aria-hidden="true"></canvas>

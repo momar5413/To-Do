@@ -1,0 +1,25 @@
+{
+  "appId": "io.github.momar5413.mahami",
+  "appName": "مهامي",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#0b1f1a"
+  },
+  "plugins": {
+    "SystemBars": {
+      "insetsHandling": "css",
+      "style": "DARK",
+      "initialViewportFitValueHint": "cover"
+    },
+    "SplashScreen": {
+      "launchAutoHide": true,
+      "launchShowDuration": 2000,
+      "backgroundColor": "#0b1f1a",
+      "showSpinner": false
+    },
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_notify",
+      "iconColor": "#D8B878"
+    }
+  }
+}

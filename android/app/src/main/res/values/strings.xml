@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">مهامي</string>
+    <string name="title_activity_main">مهامي</string>
+    <string name="package_name">io.github.momar5413.mahami</string>
+    <string name="custom_url_scheme">io.github.momar5413.mahami</string>
+</resources>
