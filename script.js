@@ -12,7 +12,7 @@
   const ACCENTS = { gold: '#d8b878', rosegold: '#e3a792', platinum: '#c9d0da', emerald: '#5fcf9c', sapphire: '#7ea6e8', ruby: '#e0707e' };
   const SMART_VIEWS = ['today', 'upcoming', 'important', 'all', 'completed'];
   const VIEW_ICONS = { today: '☀️', upcoming: '📅', important: '⭐', all: '📋', completed: '✅' };
-  const APP_VERSION = '2.1.0';
+  const APP_VERSION = '2.1.1';
   // Reminder choices: minutes before the task's date/time.
   const REMINDERS = { none: null, at: 0, '5': 5, '15': 15, '30': 30, '60': 60, '1440': 1440 };
   const SNOOZE_MINUTES = 10;
