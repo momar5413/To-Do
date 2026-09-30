@@ -1,0 +1,15 @@
+{
+  "name": "مهامي — To Do",
+  "short_name": "مهامي",
+  "description": "Task manager with lists, subtasks, due dates and stats.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f5fb",
+  "theme_color": "#6c5ce7",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
