@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="color-scheme" content="light dark" />
-  <meta name="theme-color" content="#6c5ce7" />
+  <meta name="theme-color" content="#0b1f1a" />
   <meta name="description" content="Task manager with lists, subtasks, due dates, stats and offline support." />
   <title>مهامي</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
@@ -12,14 +12,14 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
   <script>
     // Apply saved appearance before first paint to avoid a flash.
     try {
       var s = JSON.parse(localStorage.getItem('todo_v4_settings')) || {};
       var d = document.documentElement;
-      var dark = s.theme === 'dark' || (s.theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+      var dark = !s.theme || s.theme === 'dark' || (s.theme === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
       d.dataset.theme = dark ? 'dark' : 'light';
       if (s.accent) d.dataset.accent = s.accent;
       if (s.lang === 'en') { d.lang = 'en'; d.dir = 'ltr'; }
@@ -33,7 +33,7 @@
   <aside class="sidebar" id="sidebar">
     <div class="brand">
       <div class="brand-logo" aria-hidden="true">
-        <svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg viewBox="0 0 24 24"><path class="logo-star" d="M12.0,1.0 L15.2,4.2 L19.8,4.2 L19.8,8.8 L23.0,12.0 L19.8,15.2 L19.8,19.8 L15.2,19.8 L12.0,23.0 L8.8,19.8 L4.2,19.8 L4.2,15.2 L1.0,12.0 L4.2,8.8 L4.2,4.2 L8.8,4.2Z"/><path class="logo-check" d="M8 12.3l2.8 2.8L16.2 9.5"/></svg>
       </div>
       <div class="brand-name" data-i18n="appName"></div>
       <button type="button" class="icon-btn sm only-mobile" id="closeSidebar" data-i18n-attr="aria-label:close">
@@ -101,8 +101,9 @@
       </div>
       <div class="ring" id="ring" aria-live="polite">
         <svg viewBox="0 0 64 64" aria-hidden="true">
-          <circle class="ring-bg" cx="32" cy="32" r="27"/>
-          <circle class="ring-fill" id="ringFill" cx="32" cy="32" r="27"/>
+          <path class="ring-bg" d="M32.00,5.00 L39.91,12.91 L51.09,12.91 L51.09,24.09 L59.00,32.00 L51.09,39.91 L51.09,51.09 L39.91,51.09 L32.00,59.00 L24.09,51.09 L12.91,51.09 L12.91,39.91 L5.00,32.00 L12.91,24.09 L12.91,12.91 L24.09,12.91Z"/>
+          <path class="ring-fill" id="ringFill" d="M32.00,5.00 L39.91,12.91 L51.09,12.91 L51.09,24.09 L59.00,32.00 L51.09,39.91 L51.09,51.09 L39.91,51.09 L32.00,59.00 L24.09,51.09 L12.91,51.09 L12.91,39.91 L5.00,32.00 L12.91,24.09 L12.91,12.91 L24.09,12.91Z"/>
+          <path class="ring-inner" d="M32.00,5.00 L39.91,12.91 L51.09,12.91 L51.09,24.09 L59.00,32.00 L51.09,39.91 L51.09,51.09 L39.91,51.09 L32.00,59.00 L24.09,51.09 L12.91,51.09 L12.91,39.91 L5.00,32.00 L12.91,24.09 L12.91,12.91 L24.09,12.91Z" transform="translate(32 32) scale(.62) translate(-32 -32)"/>
         </svg>
         <span class="ring-pct" id="ringPct">0%</span>
       </div>

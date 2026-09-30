@@ -1,5 +1,5 @@
 // Offline support: serve the app shell from cache when the network is unavailable.
-const CACHE = 'todo-v4';
+const CACHE = 'todo-v5';
 const SHELL = ['./', 'index.html', 'style.css', 'script.js', 'icon.svg', 'manifest.webmanifest'];
 
 self.addEventListener('install', e => {

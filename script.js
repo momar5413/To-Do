@@ -9,7 +9,7 @@
   const PRIORITIES = ['none', 'low', 'med', 'high'];
   const PRIORITY_RANK = { high: 0, med: 1, low: 2, none: 3 };
   const LIST_COLORS = ['#6c5ce7', '#0984e3', '#00b894', '#fdcb6e', '#e17055', '#e84393', '#00cec9', '#636e72'];
-  const ACCENTS = { violet: '#6c5ce7', blue: '#2f7cf6', green: '#10a37f', orange: '#f0772f', pink: '#e0467c', teal: '#0ea5a5' };
+  const ACCENTS = { gold: '#d8b878', rosegold: '#e3a792', platinum: '#c9d0da', emerald: '#5fcf9c', sapphire: '#7ea6e8', ruby: '#e0707e' };
   const SMART_VIEWS = ['today', 'upcoming', 'important', 'all', 'completed'];
   const VIEW_ICONS = { today: '☀️', upcoming: '📅', important: '⭐', all: '📋', completed: '✅' };
 
@@ -41,7 +41,8 @@
       confirmImport: 'سيتم استبدال كل بياناتك الحالية. متابعة؟', confirmReset: 'حذف كل المهام والقوائم نهائياً؟',
       resetDone: 'تمت إعادة الضبط',
       language: 'اللغة', theme: 'المظهر', light: 'فاتح', dark: 'داكن', system: 'تلقائي',
-      accent: 'اللون الرئيسي', celebrate: 'احتفال عند إنهاء كل المهام 🎉', data: 'البيانات',
+      accent: 'لون الزينة',
+      gems: { gold: 'ذهبي', rosegold: 'ذهب وردي', platinum: 'بلاتيني', emerald: 'زمرد', sapphire: 'ياقوت أزرق', ruby: 'ياقوت أحمر' }, celebrate: 'احتفال عند إنهاء كل المهام 🎉', data: 'البيانات',
       export: 'تصدير', import: 'استيراد', resetAll: 'حذف الكل',
       shortcuts: 'اختصارات لوحة المفاتيح', scNew: 'مهمة جديدة', scSearch: 'بحث', scClose: 'إغلاق / إلغاء', scViews: 'التنقل بين العروض',
       emptyToday: ['يومك فارغ', 'استمتع بوقتك أو أضف مهمة جديدة'],
@@ -81,7 +82,8 @@
       confirmImport: 'This will replace all your current data. Continue?', confirmReset: 'Permanently delete all tasks and lists?',
       resetDone: 'Everything was reset',
       language: 'Language', theme: 'Theme', light: 'Light', dark: 'Dark', system: 'Auto',
-      accent: 'Accent color', celebrate: 'Celebrate when everything is done 🎉', data: 'Data',
+      accent: 'Accent',
+      gems: { gold: 'Gold', rosegold: 'Rose gold', platinum: 'Platinum', emerald: 'Emerald', sapphire: 'Sapphire', ruby: 'Ruby' }, celebrate: 'Celebrate when everything is done 🎉', data: 'Data',
       export: 'Export', import: 'Import', resetAll: 'Delete all',
       shortcuts: 'Keyboard shortcuts', scNew: 'New task', scSearch: 'Search', scClose: 'Close / cancel', scViews: 'Switch views',
       emptyToday: ['Your day is clear', 'Enjoy it, or add something new'],
@@ -120,7 +122,7 @@
   //  State
   // =====================================================================
   let data = { tasks: [], lists: [], history: {} };
-  const settings = { lang: 'ar', theme: 'system', accent: 'violet', confetti: true, sort: 'manual', view: 'today', showDone: true };
+  const settings = { lang: 'ar', theme: 'dark', accent: 'gold', confetti: true, sort: 'manual', view: 'today', showDone: true };
   const ui = { query: '', openId: null, composerPriority: 'none', undo: null };
 
   const t = key => I18N[settings.lang][key];
@@ -196,7 +198,7 @@
       settings.lang = old.lang === 'en' ? 'en' : 'ar';
     }
     if (!I18N[settings.lang]) settings.lang = 'ar';
-    if (!ACCENTS[settings.accent]) settings.accent = 'violet';
+    if (!ACCENTS[settings.accent]) settings.accent = 'gold';
     if (!isValidView(settings.view)) settings.view = 'today';
   }
 
@@ -531,8 +533,8 @@
     const total = view === 'completed' ? data.tasks.length : inView.length;
     const done = inView.filter(x => x.done).length;
     const pct = total ? Math.round(done / total * 100) : 0;
-    const C = 2 * Math.PI * 27;
     const ring = $('ringFill');
+    const C = ring.getTotalLength ? ring.getTotalLength() : 190;
     ring.style.strokeDasharray = C;
     ring.style.strokeDashoffset = C - C * pct / 100;
     $('ringPct').textContent = pct + '%';
@@ -769,7 +771,7 @@
     const dpr = window.devicePixelRatio || 1;
     canvas.width = innerWidth * dpr; canvas.height = innerHeight * dpr;
     ctx.scale(dpr, dpr);
-    const colors = [ACCENTS[settings.accent], '#fdcb6e', '#00b894', '#e84393', '#0984e3', '#ffffff'];
+    const colors = [ACCENTS[settings.accent], '#f1ddae', '#d8b878', '#a8864a', '#fff7e6', '#5fcf9c'];
     const parts = Array.from({ length: 140 }, () => ({
       x: innerWidth / 2, y: innerHeight * 0.35,
       vx: (Math.random() - 0.5) * 16, vy: Math.random() * -14 - 4,
@@ -784,7 +786,7 @@
         p.vy += 0.35; p.vx *= 0.99; p.x += p.vx; p.y += p.vy; p.rot += p.vr;
         ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
         ctx.globalAlpha = Math.max(0, 1 - frame / 150);
-        ctx.fillStyle = p.color; ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+        ctx.fillStyle = p.color; ctx.beginPath(); ctx.moveTo(0, -p.size / 2); ctx.lineTo(p.size / 3, 0); ctx.lineTo(0, p.size / 2); ctx.lineTo(-p.size / 3, 0); ctx.closePath(); ctx.fill();
         ctx.restore();
       });
       if (++frame < 150) requestAnimationFrame(tick);
@@ -802,7 +804,7 @@
     root.dataset.theme = dark ? 'dark' : 'light';
     root.dataset.accent = settings.accent;
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.content = dark ? '#0f1117' : ACCENTS[settings.accent];
+    if (meta) meta.content = dark ? '#0b1f1a' : '#eef2ee';
   }
 
   function applyLanguage() {
@@ -832,7 +834,7 @@
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'swatch' + (settings.accent === name ? ' active' : '');
       b.style.background = color; b.dataset.accent = name;
-      b.setAttribute('aria-label', name); b.setAttribute('aria-pressed', String(settings.accent === name));
+      b.setAttribute('aria-label', t('gems')[name]); b.title = t('gems')[name]; b.setAttribute('aria-pressed', String(settings.accent === name));
       return b;
     }));
   }
